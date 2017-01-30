@@ -1,0 +1,50 @@
+Data set : Problem statement
+ 
+Unit_id,log_id,log_ts,element_id,element_value,transaction_type
+ABC,l1,2016-12-14 18:45:00,A047,v1,ECC
+ABC,l1,2016-12-14 18:45:00,B357,v2,ECC
+XYZ,l2,2016-12-15 05:20:00,P001,p1,ECA
+MNY,l3,2016-11-14 18:45:00,EINN,e1,ECA
+DEF,l4,2016-11-15 16:40:00,B122,b2,ECA
+GEH,l7,2016-11-16 19:45:00,B123,b3,ECA
+AWC,l5,2016-11-17 20:45:00,B124,b4,ECA
+ABC,l9,2016-11-16 19:45:00,P001,p11,ECA
+ABC,l9,2016-11-16 19:45:00,P002,p22,ECA
+ABC,l9,2016-11-16 19:45:00,P003,p33,ECA
+ABC,l9,2016-11-16 19:45:00,P004,p44,ECA
+ABC,l9,2016-11-16 19:45:00,P005,p55,ECA
+MNC,l20,2016-10-16 18:45:00,TCPC,t1,ECA
+EFG,l34,2016-07-11 16:40:00,TCOD,t12,ECA
+ABC,l24,2016-11-16 21:35:00,P001,p111,ECA
+ABC,l24,2016-11-16 21:35:00,P002,p222,ECA
+ABC,l24,2016-11-16 21:35:00,P003,p333,ECA
+ABC,l24,2016-11-16 21:35:00,P004,p444,ECA
+ABC,l24,2016-11-16 21:35:00,P005,p555,ECA
+ABC,l24,2016-11-16 21:35:00,A047,a,ECA
+ABC,l24,2016-11-16 21:35:00,B357,b,ECA
+ 
+Create either manage or external table and then execute below cases:
+ 
+ 
+1.       Retrieve all records for transaction_type as “ECC”
+2.       Retrieve set(for one set time stamp should be same) of all unitds/records from table for ids(unit_id) from setp-1 where transaction type is "ECA".
+3.       Retrieve set with latest time stamp for all unitids
+4.       Remove those records from above set for which element_id is exist for transaction_type as “ECC”
+5.       Update all records with transaction_type as “ECC” in place of “ECA”
+6.       Insert all records in the same table
+
+Solution :
+
+select lr.unit_id, lr.element_id , lr.log_id , lr.log_ts, lr.transaction_type from useCasemainTable2 lr
+join
+(
+  select test1.element_id , max(test1.log_ts) as log_ts  from
+     (select ab.* from useCasemainTable2 ab where ab.unit_id in (select distinct(unit_id) from useCasemainTable2 where transaction_type= "ECC") and ab.transaction_type='ECA') as test1
+     left outer join
+     (
+      select element_id from useCasemainTable2 where transaction_type = 'ECC'
+     ) as test2
+     on test1.element_id = test2.element_id
+     where test2.element_id is null group by test1.element_id
+)lr1
+on lr1.element_id = lr.element_id and lr1.log_ts = lr.log_ts sort by unit_id;
